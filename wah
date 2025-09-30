@@ -1,0 +1,265 @@
+-- ...existing code...
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+
+-- Create ScreenGui (LocalScript should be in StarterGui or a place that runs on client)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SimpleAdminGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local function makeLabel(text, parent, pos)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 22)
+    lbl.Position = pos or UDim2.new(0, 0, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(255,255,255)
+    lbl.Font = Enum.Font.SourceSans
+    lbl.TextSize = 14
+    lbl.Parent = parent
+    return lbl
+end
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 300, 0, 220)
+main.Position = UDim2.new(0.5, -150, 0.5, -110)
+main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+main.BorderSizePixel = 0
+main.Parent = screenGui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 28)
+title.BackgroundTransparency = 1
+title.Text = "Simple Admin"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.Parent = main
+
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, -12, 1, -40)
+content.Position = UDim2.new(0, 6, 0, 34)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+-- Slider creator (simple)
+local function createSlider(parent, name, min, max, default, y)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 50)
+    container.Position = UDim2.new(0, 0, 0, y)
+    container.BackgroundTransparency = 1
+    container.Parent = parent
+
+    makeLabel(name, container, UDim2.new(0,0,0,0))
+
+    local track = Instance.new("Frame")
+    track.Size = UDim2.new(1, 0, 0, 10)
+    track.Position = UDim2.new(0, 0, 0, 24)
+    track.BackgroundColor3 = Color3.fromRGB(70,70,70)
+    track.Parent = container
+
+    local thumb = Instance.new("Frame")
+    thumb.Size = UDim2.new(0, 12, 1, 0)
+    thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+    thumb.Position = UDim2.new(0, 0, 0.5, 0)
+    thumb.BackgroundColor3 = Color3.fromRGB(200,200,200)
+    thumb.Parent = track
+
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Size = UDim2.new(0, 60, 0, 18)
+    valueLabel.Position = UDim2.new(1, -64, 0, -22)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.TextColor3 = Color3.fromRGB(255,255,255)
+    valueLabel.Font = Enum.Font.SourceSans
+    valueLabel.TextSize = 14
+    valueLabel.Text = tostring(default)
+    valueLabel.Parent = container
+
+    local dragging = false
+    local function setFromPos(x)
+        local absX = x - track.AbsolutePosition.X
+        local frac = math.clamp(absX / track.AbsoluteSize.X, 0, 1)
+        thumb.Position = UDim2.new(frac, 0, 0.5, 0)
+        local val = math.floor((min + (max - min) * frac) + 0.5)
+        valueLabel.Text = tostring(val)
+        return val
+    end
+
+    track.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            local val = setFromPos(input.Position.X)
+            if container.OnChange then container.OnChange(val) end
+        end
+    end)
+    track.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local val = setFromPos(input.Position.X)
+            if container.OnChange then container.OnChange(val) end
+        end
+    end)
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    -- initialize thumb
+    do
+        local frac = math.clamp((default - min) / (max - min), 0, 1)
+        thumb.Position = UDim2.new(frac, 0, 0.5, 0)
+    end
+
+    return container
+end
+
+-- WalkSpeed slider
+local wsSlider = createSlider(content, "WalkSpeed", 8, 200, 16, 0)
+wsSlider.OnChange = function(val)
+    local char = LocalPlayer.Character
+    if char then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid.WalkSpeed = val end
+    end
+end
+
+-- JumpPower slider
+local jpSlider = createSlider(content, "JumpPower", 0, 300, 50, 60)
+jpSlider.OnChange = function(val)
+    local char = LocalPlayer.Character
+    if char then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid.JumpPower = val end
+    end
+end
+
+-- Dropdown for players
+local dropdownLabel = makeLabel("Teleport to player", content, UDim2.new(0,0,0,120))
+local ddBtn = Instance.new("TextButton")
+ddBtn.Size = UDim2.new(1, 0, 0, 28)
+ddBtn.Position = UDim2.new(0, 0, 0, 142)
+ddBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+ddBtn.TextColor3 = Color3.fromRGB(255,255,255)
+ddBtn.Font = Enum.Font.SourceSans
+ddBtn.TextSize = 14
+ddBtn.Text = "Select player"
+ddBtn.Parent = content
+
+local listFrame = Instance.new("ScrollingFrame")
+listFrame.Size = UDim2.new(1, 0, 0, 120)
+listFrame.Position = UDim2.new(0, 0, 0, 170)
+listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+listFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+listFrame.Visible = false
+listFrame.Parent = content
+listFrame.ScrollBarThickness = 6
+
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.Parent = listFrame
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local selectedPlayer = nil
+
+local function refreshPlayerList()
+    for _, v in ipairs(listFrame:GetChildren()) do
+        if v:IsA("TextButton") then v:Destroy() end
+    end
+    for i, p in ipairs(Players:GetPlayers()) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -8, 0, 28)
+        btn.Position = UDim2.new(0, 4, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.Font = Enum.Font.SourceSans
+        btn.TextSize = 14
+        btn.Text = p.Name
+        btn.Parent = listFrame
+        btn.MouseButton1Click:Connect(function()
+            selectedPlayer = p
+            ddBtn.Text = "Teleport -> " .. p.Name
+            listFrame.Visible = false
+        end)
+    end
+    local count = #Players:GetPlayers()
+    listFrame.CanvasSize = UDim2.new(0, 0, 0, count * 28)
+end
+
+ddBtn.MouseButton1Click:Connect(function()
+    listFrame.Visible = not listFrame.Visible
+end)
+
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(function()
+    if selectedPlayer and not selectedPlayer.Parent then selectedPlayer = nil; ddBtn.Text = "Select player" end
+    refreshPlayerList()
+end)
+
+refreshPlayerList()
+
+-- Teleport button
+local tpBtn = Instance.new("TextButton")
+tpBtn.Size = UDim2.new(1, 0, 0, 28)
+tpBtn.Position = UDim2.new(0, 0, 0, 170 + 120 + 6)
+tpBtn.BackgroundColor3 = Color3.fromRGB(70,130,70)
+tpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+tpBtn.Font = Enum.Font.SourceSansBold
+tpBtn.TextSize = 16
+tpBtn.Text = "Teleport"
+tpBtn.Parent = content
+
+tpBtn.MouseButton1Click:Connect(function()
+    if not selectedPlayer then
+        tpBtn.Text = "Select a player first"
+        wait(1)
+        tpBtn.Text = "Teleport"
+        return
+    end
+    local myChar = LocalPlayer.Character
+    local targetChar = selectedPlayer.Character
+    if myChar and targetChar then
+        local hrp = myChar:FindFirstChild("HumanoidRootPart")
+        local trg = targetChar:FindFirstChild("HumanoidRootPart")
+        if hrp and trg then
+            hrp.CFrame = trg.CFrame + Vector3.new(0, 3, 0)
+        else
+            tpBtn.Text = "No HumanoidRootPart"
+            wait(1)
+            tpBtn.Text = "Teleport"
+        end
+    else
+        tpBtn.Text = "Character missing"
+        wait(1)
+        tpBtn.Text = "Teleport"
+    end
+end)
+
+-- Basic drag to move window
+local dragging, dragInput, dragStart, startPos
+main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+main.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+-- ...existing code...
+{ changed code }
+-- ...existing code...
