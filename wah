@@ -1,265 +1,468 @@
--- ...existing code...
+-- SimpleUI Final Build
+
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+------------------------------------------------
+-- GUI
+------------------------------------------------
+local gui = Instance.new("ScreenGui")
+gui.Name = "SimpleUI"
+gui.Parent = game.CoreGui
+gui.ResetOnSpawn = false
+
+------------------------------------------------
+-- MAIN WINDOW
+------------------------------------------------
+local Main = Instance.new("Frame")
+Main.Parent = gui
+Main.Size = UDim2.fromOffset(520,360)
+Main.Position = UDim2.fromScale(0.5,0.5)
+Main.AnchorPoint = Vector2.new(0.5,0.5)
+Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Main.BorderSizePixel = 0
+Main.Active = true
+Instance.new("UICorner",Main)
+
+------------------------------------------------
+-- TOP BAR
+------------------------------------------------
+local Top = Instance.new("Frame",Main)
+Top.Size = UDim2.new(1,0,0,40)
+Top.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Top.BorderSizePixel = 0
+Top.Active = true
+Instance.new("UICorner",Top)
+
+local Title = Instance.new("TextLabel",Top)
+Title.Size = UDim2.new(1,-120,1,0)
+Title.Position = UDim2.fromOffset(12,0)
+Title.BackgroundTransparency = 1
+Title.Text = "SimpleUI"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+local Minimize = Instance.new("TextButton",Top)
+Minimize.Size = UDim2.fromOffset(40,40)
+Minimize.Position = UDim2.new(1,-80,0,0)
+Minimize.Text = "-"
+Minimize.BackgroundTransparency = 1
+Minimize.TextColor3 = Color3.new(1,1,1)
+
+local SettingsBtn = Instance.new("TextButton",Top)
+SettingsBtn.Size = UDim2.fromOffset(40,40)
+SettingsBtn.Position = UDim2.new(1,-40,0,0)
+SettingsBtn.Text = "⚙"
+SettingsBtn.BackgroundTransparency = 1
+SettingsBtn.TextColor3 = Color3.new(1,1,1)
+
+------------------------------------------------
+-- CONTENT
+------------------------------------------------
+local Content = Instance.new("Frame",Main)
+Content.Position = UDim2.fromOffset(0,40)
+Content.Size = UDim2.new(1,0,1,-40)
+Content.BackgroundTransparency = 1
+
+local MainPage = Instance.new("Frame",Content)
+MainPage.Size = UDim2.new(1,0,1,0)
+MainPage.BackgroundColor3 = Color3.fromRGB(32,32,32)
+
+local SettingsPage = Instance.new("Frame",Content)
+SettingsPage.Size = UDim2.new(1,0,1,0)
+SettingsPage.BackgroundColor3 = Color3.fromRGB(32,32,32)
+SettingsPage.Visible = false
+
+------------------------------------------------
+-- MAIN BUTTON (KILLBRICKS)
+------------------------------------------------
+local KillBtn = Instance.new("TextButton",MainPage)
+KillBtn.Text = "Delete All KillBricks / Kill Code?"
+KillBtn.Size = UDim2.fromOffset(280,45)
+KillBtn.Position = UDim2.fromOffset(15,15)
+KillBtn.BackgroundColor3 = Color3.fromRGB(170,50,50)
+KillBtn.TextColor3 = Color3.new(1,1,1)
+KillBtn.Font = Enum.Font.GothamBold
+KillBtn.TextSize = 14
+Instance.new("UICorner",KillBtn)
+
+local function RemoveKillStuff()
+	for _,obj in ipairs(workspace:GetDescendants()) do
+
+		if obj:IsA("BasePart") then
+			if string.find(obj.Name:lower(),"kill")
+			or string.find(obj.Name:lower(),"lava")
+			or string.find(obj.Name:lower(),"death") then
+
+				for _,v in ipairs(obj:GetChildren()) do
+					if v:IsA("TouchTransmitter") then
+						v:Destroy()
+					end
+				end
+			end
+		end
+
+		if obj:IsA("Script") or obj:IsA("LocalScript") then
+			local src = string.lower(obj.Source or "")
+			if string.find(src,"takedamage")
+			or string.find(src,"health = 0")
+			or string.find(src,"breakjoints")
+			or string.find(src,"kill") then
+				obj:Destroy()
+			end
+		end
+	end
+
+	KillBtn.Text = "KillBricks got slimed fn"
+end
+
+KillBtn.MouseButton1Click:Connect(RemoveKillStuff)
+
+------------------------------------------------
+-- FORCE COLLISION ON BUTTON
+------------------------------------------------
+
+local CollideBtn = Instance.new("TextButton",MainPage)
+CollideBtn.Text = "Force Collision ON (Anti NoClip)"
+CollideBtn.Size = UDim2.fromOffset(280,45)
+CollideBtn.Position = UDim2.fromOffset(15,70)
+CollideBtn.BackgroundColor3 = Color3.fromRGB(60,120,200)
+CollideBtn.TextColor3 = Color3.new(1,1,1)
+CollideBtn.Font = Enum.Font.GothamBold
+CollideBtn.TextSize = 14
+Instance.new("UICorner",CollideBtn)
+
+------------------------------------------------
+-- FUNCTION
+------------------------------------------------
+
+local collisionEnforced = false
+
+local function ForceCollision()
+	collisionEnforced = true
+
+	for _,obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") then
+			obj.CanCollide = true
+		end
+	end
+
+	CollideBtn.Text = "Collision Locked ON ✔"
+end
+
+CollideBtn.MouseButton1Click:Connect(ForceCollision)
+
+------------------------------------------------
+-- KEEP COLLISION ON
+------------------------------------------------
+
+game:GetService("RunService").Heartbeat:Connect(function()
+	if not collisionEnforced then return end
+
+	for _,obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.CanCollide == false then
+			obj.CanCollide = true
+		end
+	end
+end)
+
+
+------------------------------------------------
+-- SETTINGS CONTENT
+------------------------------------------------
+local Back = Instance.new("TextButton",SettingsPage)
+Back.Text = "< Back"
+Back.Size = UDim2.fromOffset(90,32)
+Back.Position = UDim2.fromOffset(12,12)
+Back.BackgroundColor3 = Color3.fromRGB(55,55,55)
+Back.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner",Back)
+
+local SettingsLabel = Instance.new("TextLabel",SettingsPage)
+SettingsLabel.Text = "Settings"
+SettingsLabel.Position = UDim2.fromOffset(12,55)
+SettingsLabel.Size = UDim2.fromOffset(200,30)
+SettingsLabel.BackgroundTransparency = 1
+SettingsLabel.TextColor3 = Color3.new(1,1,1)
+SettingsLabel.Font = Enum.Font.GothamBold
+
+------------------------------------------------
+-- COLOR PICKER
+------------------------------------------------
+local ColorLabel = Instance.new("TextLabel",SettingsPage)
+ColorLabel.Text = "Background Color"
+ColorLabel.Position = UDim2.fromOffset(12,95)
+ColorLabel.Size = UDim2.fromOffset(200,25)
+ColorLabel.BackgroundTransparency = 1
+ColorLabel.TextColor3 = Color3.new(1,1,1)
+
+local colors = {
+	Color3.fromRGB(30,30,30),
+	Color3.fromRGB(60,60,60),
+	Color3.fromRGB(90,90,90),
+	Color3.fromRGB(120,120,120),
+	Color3.fromRGB(255,0,0),
+	Color3.fromRGB(0,170,255),
+	Color3.fromRGB(0,255,120),
+	Color3.fromRGB(255,255,0),
+	Color3.fromRGB(170,0,255),
+	Color3.fromRGB(255,120,0)
+}
+
+for i,color in ipairs(colors) do
+	local btn = Instance.new("TextButton",SettingsPage)
+	btn.Size = UDim2.fromOffset(30,30)
+	btn.Position = UDim2.fromOffset(
+		12 + ((i-1)%5)*36,
+		125 + math.floor((i-1)/5)*36
+	)
+	btn.BackgroundColor3 = color
+	btn.Text = ""
+	Instance.new("UICorner",btn)
+
+	btn.MouseButton1Click:Connect(function()
+		Main.BackgroundColor3 = color
+		Top.BackgroundColor3 = color
+		MainPage.BackgroundColor3 = color
+		SettingsPage.BackgroundColor3 = color
+	end)
+end
+
+------------------------------------------------
+-- DESTROY GUI
+------------------------------------------------
+local DestroyBtn = Instance.new("TextButton",SettingsPage)
+DestroyBtn.Text = "Destroy GUI"
+DestroyBtn.Size = UDim2.fromOffset(140,35)
+DestroyBtn.Position = UDim2.fromOffset(12,220)
+DestroyBtn.BackgroundColor3 = Color3.fromRGB(170,40,40)
+DestroyBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner",DestroyBtn)
+
+DestroyBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+------------------------------------------------
+-- DISCORD
+------------------------------------------------
+local DiscordLabel = Instance.new("TextLabel",SettingsPage)
+DiscordLabel.Text = "watermeloan33434\n(message my discord for any bugs or problems!)"
+DiscordLabel.Position = UDim2.fromOffset(12,265)
+DiscordLabel.Size = UDim2.fromOffset(300,45)
+DiscordLabel.BackgroundTransparency = 1
+DiscordLabel.TextWrapped = true
+DiscordLabel.TextColor3 = Color3.new(1,1,1)
+
+local CopyBtn = Instance.new("TextButton",SettingsPage)
+CopyBtn.Text = "📋"
+CopyBtn.Size = UDim2.fromOffset(40,40)
+CopyBtn.Position = UDim2.fromOffset(320,265)
+CopyBtn.BackgroundColor3 = Color3.fromRGB(55,55,55)
+CopyBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner",CopyBtn)
+
+CopyBtn.MouseButton1Click:Connect(function()
+	if setclipboard then
+		setclipboard("watermeloan33434")
+	end
+end)
+
+------------------------------------------------
+-- DRAGGING
+------------------------------------------------
+local dragging=false
+local dragStart
+local startPos
+
+Top.InputBegan:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 then
+		dragging=true
+		dragStart=i.Position
+		startPos=Main.Position
+	end
+end)
+
+UIS.InputEnded:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 then
+		dragging=false
+	end
+end)
+
+UIS.InputChanged:Connect(function(i)
+	if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+		local d=i.Position-dragStart
+		Main.Position=UDim2.new(
+			startPos.X.Scale,startPos.X.Offset+d.X,
+			startPos.Y.Scale,startPos.Y.Offset+d.Y
+		)
+	end
+end)
+
+------------------------------------------------
+-- MINIMIZE
+------------------------------------------------
+local minimized=false
+Minimize.MouseButton1Click:Connect(function()
+	minimized=not minimized
+	Content.Visible = not minimized
+
+	TweenService:Create(Main,TweenInfo.new(.25),{
+		Size = minimized and UDim2.fromOffset(520,40)
+		or UDim2.fromOffset(520,360)
+	}):Play()
+end)
+
+------------------------------------------------
+-- SETTINGS TOGGLE
+------------------------------------------------
+SettingsBtn.MouseButton1Click:Connect(function()
+	if minimized then return end
+	MainPage.Visible=false
+	SettingsPage.Visible=true
+end)
+
+Back.MouseButton1Click:Connect(function()
+	SettingsPage.Visible=false
+	MainPage.Visible=true
+end)
+------------------------------------------------
+-- HITBOX SYSTEM
+------------------------------------------------
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
 
--- Create ScreenGui (LocalScript should be in StarterGui or a place that runs on client)
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "SimpleAdminGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+local HitboxEnabled = false
+local HitboxSize = 10
+local HitboxTransparency = 0.5
 
-local function makeLabel(text, parent, pos)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, 0, 0, 22)
-    lbl.Position = pos or UDim2.new(0, 0, 0, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(255,255,255)
-    lbl.Font = Enum.Font.SourceSans
-    lbl.TextSize = 14
-    lbl.Parent = parent
-    return lbl
-end
+------------------------------------------------
+-- UI ELEMENTS
+------------------------------------------------
 
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 300, 0, 220)
-main.Position = UDim2.new(0.5, -150, 0.5, -110)
-main.BackgroundColor3 = Color3.fromRGB(30,30,30)
-main.BorderSizePixel = 0
-main.Parent = screenGui
+local HitboxToggle = Instance.new("TextButton",MainPage)
+HitboxToggle.Text = "Hitbox: OFF"
+HitboxToggle.Size = UDim2.fromOffset(280,40)
+HitboxToggle.Position = UDim2.fromOffset(15,130)
+HitboxToggle.BackgroundColor3 = Color3.fromRGB(90,90,90)
+HitboxToggle.TextColor3 = Color3.new(1,1,1)
+HitboxToggle.Font = Enum.Font.GothamBold
+HitboxToggle.TextSize = 14
+Instance.new("UICorner",HitboxToggle)
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 28)
-title.BackgroundTransparency = 1
-title.Text = "Simple Admin"
-title.TextColor3 = Color3.fromRGB(255,255,255)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 18
-title.Parent = main
+local SizeSliderBG = Instance.new("Frame",MainPage)
+SizeSliderBG.Position = UDim2.fromOffset(15,180)
+SizeSliderBG.Size = UDim2.fromOffset(280,18)
+SizeSliderBG.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner",SizeSliderBG)
 
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -12, 1, -40)
-content.Position = UDim2.new(0, 6, 0, 34)
-content.BackgroundTransparency = 1
-content.Parent = main
+local SizeFill = Instance.new("Frame",SizeSliderBG)
+SizeFill.Size = UDim2.fromScale(0.1,1)
+SizeFill.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Instance.new("UICorner",SizeFill)
 
--- Slider creator (simple)
-local function createSlider(parent, name, min, max, default, y)
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 50)
-    container.Position = UDim2.new(0, 0, 0, y)
-    container.BackgroundTransparency = 1
-    container.Parent = parent
+local SizeLabel = Instance.new("TextLabel",MainPage)
+SizeLabel.Text = "Hitbox Size"
+SizeLabel.Position = UDim2.fromOffset(15,155)
+SizeLabel.Size = UDim2.fromOffset(200,20)
+SizeLabel.BackgroundTransparency = 1
+SizeLabel.TextColor3 = Color3.new(1,1,1)
 
-    makeLabel(name, container, UDim2.new(0,0,0,0))
+local OpacitySliderBG = Instance.new("Frame",MainPage)
+OpacitySliderBG.Position = UDim2.fromOffset(15,240)
+OpacitySliderBG.Size = UDim2.fromOffset(280,18)
+OpacitySliderBG.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner",OpacitySliderBG)
 
-    local track = Instance.new("Frame")
-    track.Size = UDim2.new(1, 0, 0, 10)
-    track.Position = UDim2.new(0, 0, 0, 24)
-    track.BackgroundColor3 = Color3.fromRGB(70,70,70)
-    track.Parent = container
+local OpacityFill = Instance.new("Frame",OpacitySliderBG)
+OpacityFill.Size = UDim2.fromScale(0.5,1)
+OpacityFill.BackgroundColor3 = Color3.fromRGB(255,170,0)
+Instance.new("UICorner",OpacityFill)
 
-    local thumb = Instance.new("Frame")
-    thumb.Size = UDim2.new(0, 12, 1, 0)
-    thumb.AnchorPoint = Vector2.new(0.5, 0.5)
-    thumb.Position = UDim2.new(0, 0, 0.5, 0)
-    thumb.BackgroundColor3 = Color3.fromRGB(200,200,200)
-    thumb.Parent = track
+local OpacityLabel = Instance.new("TextLabel",MainPage)
+OpacityLabel.Text = "Opacity"
+OpacityLabel.Position = UDim2.fromOffset(15,215)
+OpacityLabel.Size = UDim2.fromOffset(200,20)
+OpacityLabel.BackgroundTransparency = 1
+OpacityLabel.TextColor3 = Color3.new(1,1,1)
 
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(0, 60, 0, 18)
-    valueLabel.Position = UDim2.new(1, -64, 0, -22)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    valueLabel.Font = Enum.Font.SourceSans
-    valueLabel.TextSize = 14
-    valueLabel.Text = tostring(default)
-    valueLabel.Parent = container
+------------------------------------------------
+-- SLIDER LOGIC
+------------------------------------------------
 
-    local dragging = false
-    local function setFromPos(x)
-        local absX = x - track.AbsolutePosition.X
-        local frac = math.clamp(absX / track.AbsoluteSize.X, 0, 1)
-        thumb.Position = UDim2.new(frac, 0, 0.5, 0)
-        local val = math.floor((min + (max - min) * frac) + 0.5)
-        valueLabel.Text = tostring(val)
-        return val
-    end
-
-    track.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            local val = setFromPos(input.Position.X)
-            if container.OnChange then container.OnChange(val) end
-        end
-    end)
-    track.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local val = setFromPos(input.Position.X)
-            if container.OnChange then container.OnChange(val) end
-        end
-    end)
-    game:GetService("UserInputService").InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    -- initialize thumb
-    do
-        local frac = math.clamp((default - min) / (max - min), 0, 1)
-        thumb.Position = UDim2.new(frac, 0, 0.5, 0)
-    end
-
-    return container
-end
-
--- WalkSpeed slider
-local wsSlider = createSlider(content, "WalkSpeed", 8, 200, 16, 0)
-wsSlider.OnChange = function(val)
-    local char = LocalPlayer.Character
-    if char then
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then humanoid.WalkSpeed = val end
-    end
-end
-
--- JumpPower slider
-local jpSlider = createSlider(content, "JumpPower", 0, 300, 50, 60)
-jpSlider.OnChange = function(val)
-    local char = LocalPlayer.Character
-    if char then
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then humanoid.JumpPower = val end
-    end
-end
-
--- Dropdown for players
-local dropdownLabel = makeLabel("Teleport to player", content, UDim2.new(0,0,0,120))
-local ddBtn = Instance.new("TextButton")
-ddBtn.Size = UDim2.new(1, 0, 0, 28)
-ddBtn.Position = UDim2.new(0, 0, 0, 142)
-ddBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-ddBtn.TextColor3 = Color3.fromRGB(255,255,255)
-ddBtn.Font = Enum.Font.SourceSans
-ddBtn.TextSize = 14
-ddBtn.Text = "Select player"
-ddBtn.Parent = content
-
-local listFrame = Instance.new("ScrollingFrame")
-listFrame.Size = UDim2.new(1, 0, 0, 120)
-listFrame.Position = UDim2.new(0, 0, 0, 170)
-listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-listFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
-listFrame.Visible = false
-listFrame.Parent = content
-listFrame.ScrollBarThickness = 6
-
-local uiListLayout = Instance.new("UIListLayout")
-uiListLayout.Parent = listFrame
-uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-local selectedPlayer = nil
-
-local function refreshPlayerList()
-    for _, v in ipairs(listFrame:GetChildren()) do
-        if v:IsA("TextButton") then v:Destroy() end
-    end
-    for i, p in ipairs(Players:GetPlayers()) do
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -8, 0, 28)
-        btn.Position = UDim2.new(0, 4, 0, 0)
-        btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-        btn.TextColor3 = Color3.fromRGB(255,255,255)
-        btn.Font = Enum.Font.SourceSans
-        btn.TextSize = 14
-        btn.Text = p.Name
-        btn.Parent = listFrame
-        btn.MouseButton1Click:Connect(function()
-            selectedPlayer = p
-            ddBtn.Text = "Teleport -> " .. p.Name
-            listFrame.Visible = false
-        end)
-    end
-    local count = #Players:GetPlayers()
-    listFrame.CanvasSize = UDim2.new(0, 0, 0, count * 28)
-end
-
-ddBtn.MouseButton1Click:Connect(function()
-    listFrame.Visible = not listFrame.Visible
+local draggingSize = false
+SizeSliderBG.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 then
+		draggingSize = true
+	end
 end)
 
-Players.PlayerAdded:Connect(refreshPlayerList)
-Players.PlayerRemoving:Connect(function()
-    if selectedPlayer and not selectedPlayer.Parent then selectedPlayer = nil; ddBtn.Text = "Select player" end
-    refreshPlayerList()
+OpacitySliderBG.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 then
+		draggingOpacity = true
+	end
 end)
 
-refreshPlayerList()
-
--- Teleport button
-local tpBtn = Instance.new("TextButton")
-tpBtn.Size = UDim2.new(1, 0, 0, 28)
-tpBtn.Position = UDim2.new(0, 0, 0, 170 + 120 + 6)
-tpBtn.BackgroundColor3 = Color3.fromRGB(70,130,70)
-tpBtn.TextColor3 = Color3.fromRGB(255,255,255)
-tpBtn.Font = Enum.Font.SourceSansBold
-tpBtn.TextSize = 16
-tpBtn.Text = "Teleport"
-tpBtn.Parent = content
-
-tpBtn.MouseButton1Click:Connect(function()
-    if not selectedPlayer then
-        tpBtn.Text = "Select a player first"
-        wait(1)
-        tpBtn.Text = "Teleport"
-        return
-    end
-    local myChar = LocalPlayer.Character
-    local targetChar = selectedPlayer.Character
-    if myChar and targetChar then
-        local hrp = myChar:FindFirstChild("HumanoidRootPart")
-        local trg = targetChar:FindFirstChild("HumanoidRootPart")
-        if hrp and trg then
-            hrp.CFrame = trg.CFrame + Vector3.new(0, 3, 0)
-        else
-            tpBtn.Text = "No HumanoidRootPart"
-            wait(1)
-            tpBtn.Text = "Teleport"
-        end
-    else
-        tpBtn.Text = "Character missing"
-        wait(1)
-        tpBtn.Text = "Teleport"
-    end
+UIS.InputEnded:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 then
+		draggingSize = false
+		draggingOpacity = false
+	end
 end)
 
--- Basic drag to move window
-local dragging, dragInput, dragStart, startPos
-main.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = main.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
+UIS.InputChanged:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseMovement then
+		
+		if draggingSize then
+			local pct = math.clamp(
+				(i.Position.X - SizeSliderBG.AbsolutePosition.X) / SizeSliderBG.AbsoluteSize.X,
+				0,1
+			)
+			SizeFill.Size = UDim2.fromScale(pct,1)
+			HitboxSize = math.floor(pct * 100)
+		end
+
+		if draggingOpacity then
+			local pct = math.clamp(
+				(i.Position.X - OpacitySliderBG.AbsolutePosition.X) / OpacitySliderBG.AbsoluteSize.X,
+				0,1
+			)
+			OpacityFill.Size = UDim2.fromScale(pct,1)
+			HitboxTransparency = math.clamp(pct,0.1,1)
+		end
+
+	end
 end)
-main.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
+
+------------------------------------------------
+-- TOGGLE
+------------------------------------------------
+
+HitboxToggle.MouseButton1Click:Connect(function()
+	HitboxEnabled = not HitboxEnabled
+	HitboxToggle.Text = HitboxEnabled and "Hitbox: ON" or "Hitbox: OFF"
 end)
-game:GetService("UserInputService").InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
+
+------------------------------------------------
+-- APPLY HITBOX
+------------------------------------------------
+
+RunService.Heartbeat:Connect(function()
+	if not HitboxEnabled then return end
+
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Character then
+			local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				hrp.Size = Vector3.new(HitboxSize,HitboxSize,HitboxSize)
+				hrp.Transparency = HitboxTransparency
+				hrp.Material = Enum.Material.Neon
+				hrp.BrickColor = BrickColor.new("Really red")
+				hrp.CanCollide = false
+			end
+		end
+	end
 end)
--- ...existing code...
-{ changed code }
--- ...existing code...
